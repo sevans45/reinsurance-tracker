@@ -1,0 +1,48 @@
+name: Reinsurance Federal Updates Tracker
+
+on:
+  schedule:
+    - cron: '0 8 * * *'
+  
+  workflow_dispatch:
+
+jobs:
+  track-updates:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests feedparser gspread google-auth-oauthlib google-auth-httplib2 google-auth
+    
+    - name: Run tracker script
+      env:
+        CONGRESS_API_KEY: ${{ secrets.CONGRESS_API_KEY }}
+        SHEETS_ENABLED: ${{ secrets.SHEETS_ENABLED }}
+        SHEETS_SPREADSHEET_ID: ${{ secrets.SHEETS_SPREADSHEET_ID }}
+        GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+        SLACK_ENABLED: ${{ secrets.SLACK_ENABLED }}
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        EMAIL_ENABLED: ${{ secrets.EMAIL_ENABLED }}
+        EMAIL_TO: ${{ secrets.EMAIL_TO }}
+        EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+      run: python reinsurance_tracker.py
+    
+    - name: Upload database
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: reinsurance-updates-db
+        path: reinsurance_updates.db
+        retention-days: 90
