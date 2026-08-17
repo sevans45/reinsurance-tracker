@@ -1,6 +1,0 @@
-requests
-feedparser
-gspread
-google-auth-oauthlib
-google-auth-httplib2
-google-auth
